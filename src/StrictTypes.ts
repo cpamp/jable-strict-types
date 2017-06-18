@@ -1,28 +1,6 @@
-type IFunction = ((...args: any[]) => any);
-
-interface IHasName extends IFunction{
-    name: string;
-}
-
-interface IHasConstructor extends IFunction {
-    constructor: IHasName;
-}
-
-class NullableType {
-    constructor(public value: IFunction) {}
-}
-
-export function Nullable(type: IFunction): IFunction {
-    return <any>(new NullableType(type));
-}
-
-class ArgumentsType {
-    constructor(public value: IFunction) {}
-}
-
-export function Arguments(type: IFunction): IFunction {
-    return <any>(new ArgumentsType(type));
-}
+import { IFunction, IHasConstructor, IHasName } from "./IFunction";
+import { NullableType } from "./Nullable";
+import { ArgumentsType } from "./Arguments";
 
 export function StrictTypes(...classes: IFunction[]) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -45,18 +23,18 @@ export function StrictTypes(...classes: IFunction[]) {
                     throw "Arguments must be the last parameter";
 
                 if (arg != null && arg.constructor !== c && !(c instanceof NullableType))
-                    throw invalideType(arg.constructor.name, i);
+                    throw invalideType(arg.constructor.name, c.name, i);
 
                 if (!(c instanceof NullableType) && arg == null)
                     throw "Null values not allowed at index: " + i;
                 else if (<any>c instanceof NullableType && arg != null && (<NullableType>(<any>c)).value !== arg.constructor)
-                    throw invalideType(arg.constructor.name, i);
+                    throw invalideType(arg.constructor.name, (<IHasName>(<NullableType>(<any>c)).value).name, i);
             }
             return oldFunc.apply(this, args);
         }
     };
 }
 
-function invalideType(name: string, index: number) {
-    return "Invalid type " + name + " at argument index: " + index;
+function invalideType(name: string, expected: string, index: number) {
+    return `Invalid type ${name} at argument index: ${index}; Expected: ${expected}`;
 }

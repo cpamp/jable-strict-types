@@ -1,6 +1,8 @@
 
 
-import { StrictTypes, Nullable, Arguments } from "../StrictTypes";
+import { StrictTypes, Nullable, Arguments } from "../index";
+
+class Foo {}
 
 export class Test {
     @StrictTypes(Function, Boolean, String)
@@ -24,7 +26,12 @@ export class Test {
     }
 
     @StrictTypes(Arguments(String), String)
-    public WrongArgs(str: string, str2: string) {
+    public WrongArgs(str: any, str2: any) {
+
+    }
+
+    @StrictTypes(Foo, Nullable(Foo))
+    public CustomClass(foo: any, foo2: any) {
 
     }
 }
@@ -60,3 +67,8 @@ Try(() => t.NullArgs('', {}, '', []));
 Try(() => t.NullArgs('', {}, '', null));
 
 Try(() => t.WrongArgs('', ''));
+
+console.log('\nCustom Class');
+Try(() => t.CustomClass('', null));
+Try(() => t.CustomClass(new Foo(), null));
+Try(() => t.CustomClass(new Foo(), new Foo()));
